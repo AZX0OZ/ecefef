@@ -125,6 +125,179 @@ function Library:CreateWindow(name)
             return Toggle
         end
         
+        -- Добавляем функцию ESP
+        function TabElements:CreateESP(text)
+            local Toggle = self:CreateToggle(text or "ESP", function(enabled)
+                if enabled then
+                    local function CreateESP(player)
+                        local esp = Instance.new("BoxHandleAdornment")
+                        esp.Name = "ESP_" .. tostring(math.random(1000000, 9999999))
+                        esp.Adornee = player.Character
+                        esp.AlwaysOnTop = true
+                        esp.ZIndex = 0
+                        esp.Size = player.Character:WaitForChild("HumanoidRootPart").Size
+                        esp.Transparency = 0.7
+                        esp.Color3 = Color3.fromRGB(255, 0, 0)
+                        esp.Parent = player.Character
+                        
+                        local nameESP = Instance.new("BillboardGui")
+                        nameESP.Name = "NameESP_" .. tostring(math.random(1000000, 9999999))
+                        nameESP.Parent = player.Character
+                        nameESP.Adornee = player.Character:WaitForChild("Head")
+                        nameESP.Size = UDim2.new(0, 100, 0, 30)
+                        nameESP.StudsOffset = Vector3.new(0, 2, 0)
+                        nameESP.AlwaysOnTop = true
+                        
+                        local nameLabel = Instance.new("TextLabel")
+                        nameLabel.Parent = nameESP
+                        nameLabel.BackgroundTransparency = 1
+                        nameLabel.Size = UDim2.new(1, 0, 1, 0)
+                        nameLabel.Text = player.Name
+                        nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        nameLabel.TextScaled = true
+                    end
+                    
+                    for _, player in pairs(game.Players:GetPlayers()) do
+                        if player ~= game.Players.LocalPlayer then
+                            CreateESP(player)
+                        end
+                    end
+                    
+                    game.Players.PlayerAdded:Connect(CreateESP)
+                else
+                    for _, player in pairs(game.Players:GetPlayers()) do
+                        if player.Character then
+                            for _, esp in pairs(player.Character:GetChildren()) do
+                                if esp.Name:match("ESP_") or esp.Name:match("NameESP_") then
+                                    esp:Destroy()
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+            return Toggle
+        end
+        
+        -- Добавляем функцию Aimbot
+        function TabElements:CreateAimbot(text)
+            local Toggle = self:CreateToggle(text or "Aimbot", function(enabled)
+                if enabled then
+                    local function GetClosestPlayer()
+                        local closestPlayer = nil
+                        local shortestDistance = math.huge
+                        
+                        for _, player in pairs(game.Players:GetPlayers()) do
+                            if player ~= game.Players.LocalPlayer and player.Character and 
+                               player.Character:FindFirstChild("HumanoidRootPart") and 
+                               player.Character:FindFirstChild("Humanoid") and 
+                               player.Character.Humanoid.Health > 0 then
+                                
+                                local pos = game.Workspace.CurrentCamera:WorldToViewportPoint(player.Character.HumanoidRootPart.Position)
+                                local magnitude = (Vector2.new(pos.X, pos.Y) - Vector2.new(game.Players.LocalPlayer:GetMouse().X, game.Players.LocalPlayer:GetMouse().Y)).magnitude
+                                
+                                if magnitude < shortestDistance then
+                                    closestPlayer = player
+                                    shortestDistance = magnitude
+                                end
+                            end
+                        end
+                        
+                        return closestPlayer
+                    end
+                    
+                    game:GetService("RunService").RenderStepped:Connect(function()
+                        if enabled then
+                            local closestPlayer = GetClosestPlayer()
+                            if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+                                local pos = game.Workspace.CurrentCamera:WorldToViewportPoint(closestPlayer.Character.Head.Position)
+                                mousemoverel((pos.X - game.Players.LocalPlayer:GetMouse().X) * 0.5, (pos.Y - game.Players.LocalPlayer:GetMouse().Y) * 0.5)
+                            end
+                        end
+                    end)
+                end
+            end)
+            return Toggle
+        end
+        
+        -- Добавляем функцию настройки скорости
+        function TabElements:CreateSlider(text, min, max, default, callback)
+            local Slider = Instance.new("Frame")
+            local Title = Instance.new("TextLabel")
+            local SliderBar = Instance.new("Frame")
+            local SliderButton = Instance.new("TextButton")
+            local SliderValue = Instance.new("TextLabel")
+            
+            Slider.Name = "Slider"
+            Slider.Parent = Content
+            Slider.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            Slider.BorderSizePixel = 0
+            Slider.Size = UDim2.new(1, 0, 0, 50)
+            
+            Title.Name = "Title"
+            Title.Parent = Slider
+            Title.BackgroundTransparency = 1
+            Title.Position = UDim2.new(0, 10, 0, 0)
+            Title.Size = UDim2.new(1, -20, 0, 25)
+            Title.Font = Enum.Font.SourceSans
+            Title.Text = text
+            Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+            Title.TextSize = 16
+            Title.TextXAlignment = Enum.TextXAlignment.Left
+            
+            SliderBar.Name = "SliderBar"
+            SliderBar.Parent = Slider
+            SliderBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            SliderBar.BorderSizePixel = 0
+            SliderBar.Position = UDim2.new(0, 10, 0, 35)
+            SliderBar.Size = UDim2.new(1, -20, 0, 5)
+            
+            SliderButton.Name = "SliderButton"
+            SliderButton.Parent = SliderBar
+            SliderButton.BackgroundColor3 = Color3.fromRGB(60, 120, 255)
+            SliderButton.BorderSizePixel = 0
+            SliderButton.Size = UDim2.new(0, 10, 0, 15)
+            SliderButton.Position = UDim2.new(0, -5, 0, -5)
+            SliderButton.Text = ""
+            
+            SliderValue.Name = "SliderValue"
+            SliderValue.Parent = Slider
+            SliderValue.BackgroundTransparency = 1
+            SliderValue.Position = UDim2.new(1, -50, 0, 0)
+            SliderValue.Size = UDim2.new(0, 40, 0, 25)
+            SliderValue.Font = Enum.Font.SourceSans
+            SliderValue.Text = tostring(default)
+            SliderValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+            SliderValue.TextSize = 16
+            
+            local dragging = false
+            local function updateSlider(input)
+                local pos = UDim2.new(math.clamp((input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X, 0, 1), -5, 0, -5)
+                SliderButton.Position = pos
+                local value = math.floor(min + (max - min) * pos.X.Scale)
+                SliderValue.Text = tostring(value)
+                if callback then callback(value) end
+            end
+            
+            SliderButton.MouseButton1Down:Connect(function()
+                dragging = true
+            end)
+            
+            game:GetService("UserInputService").InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    updateSlider(input)
+                end
+            end)
+            
+            return Slider
+        end
+        
         return TabElements
     end
     
